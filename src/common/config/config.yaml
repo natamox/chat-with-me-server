@@ -1,0 +1,3 @@
+app:
+  idDev: true
+  tokenSecret: 'natamox'
