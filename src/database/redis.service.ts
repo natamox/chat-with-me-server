@@ -1,3 +1,4 @@
+import { IRoom } from '@models'
 import { Injectable } from '@nestjs/common'
 import Redis from 'ioredis'
 
@@ -13,16 +14,12 @@ class RedisClient extends Redis {
 
 @Injectable()
 export class RedisService extends RedisClient {
-  // async setAuthToken(userId: number, token: string) {
-  //   return this.setex(`access-token:${userId}`, AUTH_TOKEN_EXPIRED_TIME, token);
-  // }
-  // async getAuthToken(userId: number) {
-  //   return this.get(`access-token:${userId}`);
-  // }
-  // async removeAuthToken(userId: number) {
-  //   return this.del(`access-token:${userId}`);
-  // }
-  setRoom() {
-    //  return this.set(`room:`)
+  async getRoom(roomId: string): Promise<IRoom> {
+    const room = await this.get(`room:${roomId}`)
+    return JSON.parse(room)
+  }
+
+  async setRoom(roomId: string, room: IRoom) {
+    await this.set(`room:${roomId}`, JSON.stringify(room))
   }
 }

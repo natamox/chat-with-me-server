@@ -26,3 +26,8 @@ export interface IRequestWithAuth extends Request {
 export interface ISocketWithAuth extends Socket {
   user: IUser
 }
+
+export interface IRoom {
+  roomName: string
+  users: IUser[]
+}
