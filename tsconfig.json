@@ -18,8 +18,7 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      // 注意哦，是 "@/*" 后面的 "/*" 不能少
-      "@/*": [
+      "@*": [
         "src/*"
       ]
     }

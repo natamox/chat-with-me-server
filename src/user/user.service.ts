@@ -1,14 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
 import { JwtService } from '@nestjs/jwt'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import * as bcrypt from 'bcryptjs'
 import { User } from './entities/user.entity'
+import { PrismaService } from '@database/prisma.service'
+import { RedisService } from '@database/redis.service'
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService, private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly jwtService: JwtService,
+    private readonly redisService: RedisService
+  ) {}
   async register({ username, password }: CreateUserDto) {
     const existUser = await this.prismaService.user.findUnique({ where: { username } })
     if (existUser) {
@@ -28,6 +33,7 @@ export class UserService {
     const isOk = bcrypt.compareSync(password, user.password)
     if (!isOk) throw new HttpException('密码错误！', HttpStatus.BAD_REQUEST)
     const token = await this.token(user)
+    this.redisService.set(`user:${user.id}`, JSON.stringify(user))
     delete user.password
     delete user.createdAt
     delete user.updatedAt

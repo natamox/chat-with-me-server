@@ -3,7 +3,7 @@ import { UserService } from './user.service'
 import { UserController } from './user.controller'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
-import { JwtStrategy } from './jwt.strategy'
+import { JwtStrategy } from '@common/strategies/jwt.strategy'
 
 @Module({
   imports: [
