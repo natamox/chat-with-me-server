@@ -1,3 +1,6 @@
+import { Request } from 'express'
+import { Socket } from 'socket.io'
+
 export enum ESocketMessage {
   /** 状态 */
   Connect = 'connect',
@@ -10,4 +13,16 @@ export enum ESocketMessage {
   Create = 'create',
   Match = 'match',
   Message = 'message'
+}
+
+export interface IUser {
+  id: string
+  username: string
+}
+export interface IRequestWithAuth extends Request {
+  user: IUser
+}
+
+export interface ISocketWithAuth extends Socket {
+  user: IUser
 }

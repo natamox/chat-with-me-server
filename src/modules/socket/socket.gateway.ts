@@ -7,19 +7,12 @@ import {
   OnGatewayDisconnect
 } from '@nestjs/websockets'
 import { UseGuards } from '@nestjs/common'
-import { Socket } from 'socket.io'
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard'
-import { ESocketMessage } from '@models'
+import { ESocketMessage, ISocketWithAuth } from '@models'
 import { RedisService } from '@database/redis.service'
 import { randomId } from '@utils/random-id'
 import { find } from 'lodash'
-
-interface ISocketWithAuth extends Socket {
-  user: {
-    id: string
-    username: string
-  }
-}
+import { IRoom } from './entities/room.entities'
 
 @UseGuards(JwtAuthGuard)
 @WebSocketGateway({ cors: true })
@@ -43,7 +36,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage(ESocketMessage.Join)
   async joinRoom(@MessageBody() roomId: string, @ConnectedSocket() socket: ISocketWithAuth) {
-    const users = JSON.parse(await this.redisService.get(`room:${roomId}`)) as ISocketWithAuth['user'][]
+    const { users } = JSON.parse(await this.redisService.get(`room:${roomId}`)) as IRoom
     if (find(users, { id: socket.user.id })) {
       socket.emit(ESocketMessage.Message, `你已加入房间！`)
     } else {
@@ -55,8 +48,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage(ESocketMessage.Create)
-  async createRoom(@ConnectedSocket() socket: ISocketWithAuth) {
+  async createRoom(@MessageBody() roomName: string, @ConnectedSocket() socket: ISocketWithAuth) {
     const roomId = randomId()
-    this.redisService.set(`room:${roomId}`, JSON.stringify([socket.user]))
+    const room = { roomName, users: [socket.user] }
+    this.redisService.set(`room:${roomId}`, JSON.stringify(room))
   }
 }
