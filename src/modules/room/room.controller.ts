@@ -13,7 +13,8 @@ export class RoomController {
   @Post()
   createRoom(@Req() { user }: IRequestWithAuth, @Body() { roomName }: { roomName: string }) {
     const roomId = randomId()
-    const room = { roomName, users: [] } as IRoom
+    // user.isHost = true
+    const room = { roomId, roomName, users: [] } as IRoom
     this.redisService.set(`room:${roomId}`, JSON.stringify(room))
     return { roomId }
   }

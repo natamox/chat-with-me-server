@@ -37,7 +37,6 @@ export class UserService {
     delete user.password
     delete user.createdAt
     delete user.updatedAt
-    delete user.id
     return { user, ...token }
   }
 

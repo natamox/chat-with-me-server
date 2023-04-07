@@ -2,22 +2,35 @@ import { Request } from 'express'
 import { Socket } from 'socket.io'
 
 export enum ESocketMessage {
-  /** 状态 */
   Connect = 'connect',
   Disconnect = 'disconnect',
   Joined = 'joined',
   Leaved = 'leaved',
 
-  /**行为 */
   Join = 'join',
   Create = 'create',
   Match = 'match',
-  Message = 'message'
+  Message = 'message',
+  Offer = 'offer',
+  Answer = 'answer',
+  Ice = 'ice',
+
+  Signal = 'signal',
+  Stream = 'stream',
+
+  PeerRequest = 'connPre',
+
+  PeerConn = 'connInit',
+
+  Info = 'info',
+  Warn = 'warn'
 }
 
 export interface IUser {
   id: string
   username: string
+  socketId: string
+  // isHost?: boolean //房间创建人
 }
 export interface IRequestWithAuth extends Request {
   user: IUser
@@ -28,6 +41,25 @@ export interface ISocketWithAuth extends Socket {
 }
 
 export interface IRoom {
+  roomId: string
   roomName: string
   users: IUser[]
 }
+
+export type SignalData =
+  | {
+  type: "transceiverRequest";
+  transceiverRequest: {
+    kind: string;
+    init?: RTCRtpTransceiverInit | undefined;
+  };
+}
+  | {
+  type: "renegotiate";
+  renegotiate: true;
+}
+  | {
+  type: "candidate";
+  candidate: RTCIceCandidate;
+}
+  | RTCSessionDescriptionInit;
