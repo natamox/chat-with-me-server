@@ -30,7 +30,6 @@ export interface IUser {
   id: string
   username: string
   socketId: string
-  // isHost?: boolean //房间创建人
 }
 export interface IRequestWithAuth extends Request {
   user: IUser
@@ -43,7 +42,8 @@ export interface ISocketWithAuth extends Socket {
 export interface IRoom {
   roomId: string
   roomName: string
-  users: IUser[]
+  users: {[key:string]: IUser }
+  // users: IUser[]
 }
 
 export type SignalData =

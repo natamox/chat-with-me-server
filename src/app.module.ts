@@ -7,6 +7,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { ScheduleModule } from '@nestjs/schedule'
 import { NestLogsModule } from 'nest-logs'
+
 @Module({
   imports: [
     NestLogsModule,

@@ -1,4 +1,4 @@
-import { SignalData } from '@models'
+import { IUser, SignalData } from '@models'
 
 export interface ITransferOffer {
   offer: RTCSessionDescriptionInit
@@ -12,5 +12,5 @@ export interface ITransferAnswer {
 
 export interface ISignalData {
   signal: SignalData
-  socketId: string
+  user: IUser
 }
