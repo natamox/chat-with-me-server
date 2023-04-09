@@ -4,10 +4,11 @@ import { Socket } from 'socket.io'
 export enum ESocketMessage {
   Connect = 'connect',
   Disconnect = 'disconnect',
-  Joined = 'joined',
   Leaved = 'leaved',
+  Joined = 'joined',
 
   Join = 'join',
+  Leave = 'leave',
   Create = 'create',
   Match = 'match',
   Message = 'message',
@@ -42,24 +43,24 @@ export interface ISocketWithAuth extends Socket {
 export interface IRoom {
   roomId: string
   roomName: string
-  users: {[key:string]: IUser }
+  users: { [key: string]: IUser }
   // users: IUser[]
 }
 
 export type SignalData =
   | {
-  type: "transceiverRequest";
-  transceiverRequest: {
-    kind: string;
-    init?: RTCRtpTransceiverInit | undefined;
-  };
-}
+      type: 'transceiverRequest'
+      transceiverRequest: {
+        kind: string
+        init?: RTCRtpTransceiverInit | undefined
+      }
+    }
   | {
-  type: "renegotiate";
-  renegotiate: true;
-}
+      type: 'renegotiate'
+      renegotiate: true
+    }
   | {
-  type: "candidate";
-  candidate: RTCIceCandidate;
-}
-  | RTCSessionDescriptionInit;
+      type: 'candidate'
+      candidate: RTCIceCandidate
+    }
+  | RTCSessionDescriptionInit

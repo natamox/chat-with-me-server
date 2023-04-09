@@ -19,7 +19,19 @@ export class RedisService extends RedisClient {
     return JSON.parse(room)
   }
 
+  async delRoom(roomId: string) {
+    await this.del(`room:${roomId}`)
+  }
+
   async setRoom(roomId: string, room: IRoom) {
     await this.set(`room:${roomId}`, JSON.stringify(room))
+  }
+
+  async getUserStatus(userId: string) {
+    return (await this.get(`user_status:${userId}`)) ?? ''
+  }
+  /** 用户状态 */
+  async setUserStatus(userId: string, roomId: string) {
+    await this.set(`user_status:${userId}`, roomId)
   }
 }
