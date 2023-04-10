@@ -29,6 +29,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       Logger.error(err)
       throw new HttpException('用户不存在！', 400)
     })
-    return pick(user, ['id', 'username'])
+    return pick(user, ['id', 'nickname', 'username'])
   }
 }

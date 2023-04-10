@@ -1,4 +1,4 @@
-import { IRoom } from '@models'
+import { IMessage, IRoom } from '@models'
 import { Injectable } from '@nestjs/common'
 import Redis from 'ioredis'
 
@@ -14,24 +14,27 @@ class RedisClient extends Redis {
 
 @Injectable()
 export class RedisService extends RedisClient {
-  async getRoom(roomId: string): Promise<IRoom> {
-    const room = await this.get(`room:${roomId}`)
-    return JSON.parse(room)
-  }
-
-  async delRoom(roomId: string) {
-    await this.del(`room:${roomId}`)
-  }
-
-  async setRoom(roomId: string, room: IRoom) {
-    await this.set(`room:${roomId}`, JSON.stringify(room))
-  }
+  // async clearGhostRoom() {
+  //   const roomKeys = await this.keys('room:*')
+  //   if (roomKeys.length === 0) return
+  //   const roomValues = await this.mget(roomKeys)
+  //   roomValues.forEach((value) => {
+  //     const room = JSON.parse(value)
+  //     if (Object.keys(room.users).length === 0) {
+  //       this.delRoom(room.roomId)
+  //     }
+  //   })
+  // }
 
   async getUserStatus(userId: string) {
     return (await this.get(`user_status:${userId}`)) ?? ''
   }
-  /** 用户状态 */
+  /** 用户状态 是否在某个房间里*/
   async setUserStatus(userId: string, roomId: string) {
     await this.set(`user_status:${userId}`, roomId)
   }
+
+  // async findMatchUser() {
+  //   const keys = await this.get('user_match_queue')
+  // }
 }

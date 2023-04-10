@@ -14,14 +14,14 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService
   ) {}
-  async register({ username, password }: CreateUserDto) {
+  async register({ username, password, nickname }: CreateUserDto) {
     const existUser = await this.prismaService.user.findUnique({ where: { username } })
     if (existUser) {
       throw new HttpException('用户名已存在', HttpStatus.BAD_REQUEST)
     }
     const hashPassword = bcrypt.hashSync(password, 10)
     const user = await this.prismaService.user.create({
-      data: { username, password: hashPassword }
+      data: { username, nickname, password: hashPassword }
     })
     delete user.password
     return { user: user }
@@ -50,7 +50,7 @@ export class UserService {
     }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`
-  }
+  // update(id: number, updateUserDto: UpdateUserDto) {
+  //   return `This action updates a #${id} user`
+  // }
 }

@@ -18,3 +18,16 @@ model User {
 
   @@map("user")
 }
+
+model Room {
+  id        String   @id @unique @default(uuid())
+  roomId    String   @unique
+  roomName  String
+  type      String
+  users     String
+  message   String
+  createdAt DateTime @default(now()) @map("create_time") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("update_time") @db.Timestamptz
+
+  @@map("room")
+}

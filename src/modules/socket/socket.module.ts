@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common'
 import { SocketGateway } from './socket.gateway'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
+import { RoomModule } from '@modules/room/room.module'
 
 @Module({
   imports: [
+    RoomModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {

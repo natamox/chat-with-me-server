@@ -12,9 +12,9 @@ export enum ESocketMessage {
   Create = 'create',
   Match = 'match',
   Message = 'message',
-  Offer = 'offer',
-  Answer = 'answer',
-  Ice = 'ice',
+
+  OpenCamera = 'openCamera',
+  CloseCamera = 'closeCamera',
 
   Signal = 'signal',
   Stream = 'stream',
@@ -30,7 +30,19 @@ export enum ESocketMessage {
 export interface IUser {
   id: string
   username: string
+  nickname: string
+}
+
+export interface IRoomUser extends IUser {
   socketId: string
+  isCameraOpen: boolean
+}
+
+export interface IMessage {
+  id: string
+  user: IRoomUser
+  text: string
+  time: string
 }
 export interface IRequestWithAuth extends Request {
   user: IUser
@@ -40,11 +52,17 @@ export interface ISocketWithAuth extends Socket {
   user: IUser
 }
 
+export enum ERoomType {
+  Math = 'math',
+  Chat = 'chat'
+}
+
 export interface IRoom {
   roomId: string
   roomName: string
-  users: { [key: string]: IUser }
-  // users: IUser[]
+  type: ERoomType
+  users: { [key: string]: IRoomUser }
+  message: IMessage[]
 }
 
 export type SignalData =
