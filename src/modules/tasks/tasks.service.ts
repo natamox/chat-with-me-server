@@ -1,4 +1,5 @@
 import { RedisService } from '@database/redis.service'
+import { ESocketMessage } from '@models'
 import { RoomService } from '@modules/room/room.service'
 import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
@@ -9,8 +10,12 @@ export class TasksService {
 
   // 每五分钟清理一遍幽灵房间  没有人的房间
   @Cron(CronExpression.EVERY_5_MINUTES)
-  clearGhostRoom() {
-    console.log('clearGhostRoom')
-    this.roomService.clearGhostRooms()
+  async clearGhostRoom() {
+    const lock = await this.redisService.acquireLock(ESocketMessage.Match, 500)
+    if (lock) {
+      console.log('clearGhostRoom')
+      await this.roomService.clearGhostRooms()
+      this.redisService.releaseLock(ESocketMessage.Match)
+    }
   }
 }

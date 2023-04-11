@@ -41,39 +41,51 @@ export class SocketGateway implements OnGatewayDisconnect {
 
   @SubscribeMessage(ESocketMessage.Join)
   async joinRoom(@MessageBody() roomId: string, @ConnectedSocket() socket: ISocketWithAuth) {
-    try {
-      const room = await this.roomService.findRoom(roomId)
-      if (!room) return socket.emit(ESocketMessage.Warn, `未找到该房间！`)
-      const roomUsersObj = JSON.parse(room.users)
-      const messages = JSON.parse(room.message)
-      room.users = roomUsersObj
-      room.message = messages
-      const usersArr: IRoomUser[] = values(roomUsersObj)
-      if (usersArr.length === 4) return socket.emit(ESocketMessage.Warn, `房间人数已满！`)
+    const join = async () => {
+      try {
+        const room = await this.roomService.findRoom(roomId)
+        if (!room) return socket.emit(ESocketMessage.Warn, `未找到该房间！`)
+        const roomUsersObj = JSON.parse(room.users)
+        const messages = JSON.parse(room.message)
+        room.users = roomUsersObj
+        room.message = messages
+        const usersArr: IRoomUser[] = values(roomUsersObj)
+        if (usersArr.length === 4) return socket.emit(ESocketMessage.Warn, `房间人数已满！`)
 
-      const user = cloneDeep(socket.user)
-      user['socketId'] = socket.id
-      user['isCameraOpen'] = true
-      roomUsersObj[user.id] = user
-      await this.roomService.updateRoomUsers(roomId, JSON.stringify(roomUsersObj))
-      await this.redisService.setUserStatus(user.id, roomId)
+        const user = cloneDeep(socket.user)
+        user['socketId'] = socket.id
+        roomUsersObj[user.id] = user
+        await this.roomService.updateRoomUsers(roomId, JSON.stringify(roomUsersObj))
+        await this.redisService.setUserStatus(user.id, roomId)
 
-      socket.join(roomId)
-      // 向自己以及房间内其他人发送加入消息更新房间
-      usersArr.push(user as IRoomUser)
-      socket.to(roomId).emit(ESocketMessage.Joined, { room, user })
-      socket.emit(ESocketMessage.Joined, { room, user })
+        socket.join(roomId)
+        // 向自己以及房间内其他人发送加入消息更新房间
+        usersArr.push(user as IRoomUser)
+        socket.to(roomId).emit(ESocketMessage.Joined, { room, user })
+        socket.emit(ESocketMessage.Joined, { room, user })
 
-      if (usersArr.length !== 1) {
-        // 创建房间的时候，不需要发送 PeerRequest
-        usersArr.forEach((item) => {
-          if (item.id === user.id) return
-          socket.to(item.socketId).emit(ESocketMessage.PeerRequest, user)
-        })
+        if (usersArr.length !== 1) {
+          // 创建房间的时候，不需要发送 PeerRequest
+          usersArr.forEach((item) => {
+            if (item.id === user.id) return
+            socket.to(item.socketId).emit(ESocketMessage.PeerRequest, user)
+          })
+        }
+      } catch (err) {
+        Logger.error(err)
+        return socket.emit(ESocketMessage.Warn, `操作失败，请稍后再试！`)
       }
-    } catch (err) {
-      Logger.error(err)
-      return socket.emit(ESocketMessage.Warn, `操作失败，请稍后再试！`)
+    }
+
+    while (true) {
+      // 加房间锁，防止多人同时加入房间可能会导致的数据不一致
+      const lock = await this.redisService.acquireLock(roomId)
+      if (lock) {
+        await join()
+        await this.redisService.releaseLock(roomId)
+        break
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000))
     }
   }
 
@@ -109,23 +121,5 @@ export class SocketGateway implements OnGatewayDisconnect {
     const { socketId, signal } = info
     const signalingData = { signal, user: socket.user }
     socket.to(socketId).emit(ESocketMessage.Signal, signalingData)
-  }
-
-  @SubscribeMessage(ESocketMessage.OpenCamera)
-  async openCamera(@MessageBody() roomId: string, @ConnectedSocket() socket: ISocketWithAuth) {
-    const room = await this.roomService.findRoom(roomId)
-    const users = JSON.parse(room.users)
-    users[socket.user.id].isCameraOpen = true
-    await this.roomService.updateRoomUsers(roomId, JSON.stringify(users))
-    socket.to(roomId).emit(ESocketMessage.OpenCamera, socket.user.id)
-  }
-
-  @SubscribeMessage(ESocketMessage.CloseCamera)
-  async closeCamera(@MessageBody() roomId: string, @ConnectedSocket() socket: ISocketWithAuth) {
-    const room = await this.roomService.findRoom(roomId)
-    const users = JSON.parse(room.users)
-    users[socket.user.id].isCameraOpen = false
-    await this.roomService.updateRoomUsers(roomId, JSON.stringify(users))
-    socket.to(roomId).emit(ESocketMessage.CloseCamera, socket.user.id)
   }
 }

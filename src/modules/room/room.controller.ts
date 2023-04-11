@@ -19,10 +19,9 @@ export class RoomController {
   }
 
   @Get()
-  async findRoom(@Query() { roomId }: { roomId: string }) {
+  async getRoom(@Query() { roomId }: { roomId: string }) {
     const room = await this.roomService.findRoom(roomId)
-    if (!room) return false
-    return true
+    return room
   }
 
   @Get('/list')
@@ -30,10 +29,9 @@ export class RoomController {
     return await this.roomService.findAllRooms()
   }
 
-  @Get()
-  async matchRoom(@Req() { user }: IRequestWithAuth) {
-    // const room = await this.redisService.getRoom(roomId)
-    // if (!room) return false
-    // return true
+  @Get('/match')
+  async matchUser(@Req() { user }: IRequestWithAuth) {
+    const roomId = await this.roomService.matchUser(user.id)
+    return { roomId }
   }
 }

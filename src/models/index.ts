@@ -35,7 +35,6 @@ export interface IUser {
 
 export interface IRoomUser extends IUser {
   socketId: string
-  isCameraOpen: boolean
 }
 
 export interface IMessage {
@@ -53,7 +52,7 @@ export interface ISocketWithAuth extends Socket {
 }
 
 export enum ERoomType {
-  Math = 'math',
+  Match = 'match',
   Chat = 'chat'
 }
 

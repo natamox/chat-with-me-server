@@ -14,27 +14,39 @@ class RedisClient extends Redis {
 
 @Injectable()
 export class RedisService extends RedisClient {
-  // async clearGhostRoom() {
-  //   const roomKeys = await this.keys('room:*')
-  //   if (roomKeys.length === 0) return
-  //   const roomValues = await this.mget(roomKeys)
-  //   roomValues.forEach((value) => {
-  //     const room = JSON.parse(value)
-  //     if (Object.keys(room.users).length === 0) {
-  //       this.delRoom(room.roomId)
-  //     }
-  //   })
-  // }
-
   async getUserStatus(userId: string) {
     return (await this.get(`user_status:${userId}`)) ?? ''
   }
+
   /** 用户状态 是否在某个房间里*/
   async setUserStatus(userId: string, roomId: string) {
     await this.set(`user_status:${userId}`, roomId)
   }
 
-  // async findMatchUser() {
-  //   const keys = await this.get('user_match_queue')
+  async acquireLock(key = 'common', timeout = 1000) {
+    const value = Date.now() + timeout + 1
+    const multi = this.multi()
+    multi.set(`lock_${key}`, value, 'PX', timeout, 'NX')
+    multi.expire(`lock_${key}`, timeout)
+    const results = await multi.exec()
+    return results[0][1] === 'OK'
+  }
+
+  async releaseLock(key = 'common') {
+    return await this.del(`lock_${key}`)
+  }
+
+  // async acquireLock(timeout = 1000) {
+  //   const value = Date.now() + timeout + 1
+  //   const acquired = await this.set('lock', value, 'PX', timeout, 'NX')
+  //   return acquired === 'OK'
+  // }
+
+  // async releaseLock() {
+  //   return await this.del('lock')
+  // }
+
+  // async expireLock(timeout = 1000) {
+  //   return await this.expire('lock', timeout)
   // }
 }
