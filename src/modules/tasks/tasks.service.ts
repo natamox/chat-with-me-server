@@ -13,7 +13,6 @@ export class TasksService {
   async clearGhostRoom() {
     const lock = await this.redisService.acquireLock(ESocketMessage.Match, 500)
     if (lock) {
-      console.log('clearGhostRoom')
       await this.roomService.clearGhostRooms()
       this.redisService.releaseLock(ESocketMessage.Match)
     }

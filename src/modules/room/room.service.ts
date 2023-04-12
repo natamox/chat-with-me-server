@@ -151,7 +151,6 @@ export class RoomService {
             // console.log(userId, `matchUserId:${matchUserId}`)
             // 如果匹配成功，创建房间并更新用户状态
             const room = await this.createRoom('匹配房间', ERoomType.Match)
-            console.log('room', room)
             await this.redisService.setUserStatus(userId, room.roomId)
             await this.redisService.setUserStatus(matchUserId, room.roomId)
             await this.redisService.srem('user_match', matchUserId)
