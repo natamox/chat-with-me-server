@@ -104,17 +104,16 @@ export class RoomService {
   }
 
   async matchUser(userId: string) {
+    console.log('userId', userId)
     let roomId = null
     let matchUserId = null
     let lock = null
     let counter = 0
     const maxTime = 1 * 60 * 1000 // 最大等待时间为 1 分钟
     const peerTimeGap = 1000 // 每次匹配的时间间隔
-
     // 开始循环匹配
     while (true) {
       counter += peerTimeGap // 每秒执行一次操作
-
       roomId = await this.redisService.getUserStatus(userId)
       if (roomId) {
         // 如果用户已经在房间中，直接返回房间号
@@ -124,7 +123,6 @@ export class RoomService {
         }
         return roomId
       }
-
       // 如果已经超时，则停止执行操作并返回结果
       if (counter >= maxTime) {
         if (lock) {
@@ -132,35 +130,25 @@ export class RoomService {
         }
         return null
       }
-
-      //TODO: 用户是否手动停止了匹配
-
       // 尝试获取匹配池锁
-      lock = await this.redisService.acquireLock(ESocketMessage.Match, 500)
+      lock = await this.redisService.acquireLock(ESocketMessage.Match, 1000)
       if (!lock) {
-        // 如果获取锁失败，表示有其他用户正在匹配中，等待下一次匹配
+        // 如果获取锁失败，表示有其他用户正在操作，等待下一次匹配
         await new Promise((resolve) => setTimeout(resolve, peerTimeGap))
         continue
       }
-
       try {
         // 尝试从匹配池中获取其他用户
         matchUserId = await this.redisService.srandmember('user_match')
-        if (matchUserId) {
-          if (matchUserId !== userId) {
-            // console.log(userId, `matchUserId:${matchUserId}`)
-            // 如果匹配成功，创建房间并更新用户状态
-            const room = await this.createRoom('匹配房间', ERoomType.Match)
-            await this.redisService.setUserStatus(userId, room.roomId)
-            await this.redisService.setUserStatus(matchUserId, room.roomId)
-            await this.redisService.srem('user_match', matchUserId)
-            roomId = room.roomId
-            break
-          } else {
-            // console.log(userId, `matchUserId === userId`)
-          }
+        if (matchUserId && matchUserId !== userId) {
+          // 如果匹配成功，创建房间并更新用户状态
+          const room = await this.createRoom('匹配房间', ERoomType.Match)
+          await this.redisService.setUserStatus(userId, room.roomId)
+          await this.redisService.setUserStatus(matchUserId, room.roomId)
+          await this.redisService.srem('user_match', matchUserId)
+          roomId = room.roomId
+          break
         } else {
-          // console.log(userId, `将自己加入匹配池`)
           // 如果匹配池中没有其他用户，将自己加入匹配池
           await this.redisService.sadd('user_match', userId)
         }
@@ -172,7 +160,6 @@ export class RoomService {
         }
       }
     }
-
     return roomId
   }
 }

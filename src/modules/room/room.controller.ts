@@ -21,6 +21,7 @@ export class RoomController {
   @Get()
   async getRoom(@Query() { roomId }: { roomId: string }) {
     const room = await this.roomService.findRoom(roomId)
+    room.users = JSON.parse(room.users)
     return room
   }
 

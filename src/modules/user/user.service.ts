@@ -33,10 +33,10 @@ export class UserService {
     const isOk = bcrypt.compareSync(password, user.password)
     if (!isOk) throw new HttpException('密码错误！', HttpStatus.BAD_REQUEST)
     const token = await this.token(user)
-    this.redisService.set(`user:${user.id}`, JSON.stringify(user))
     delete user.password
     delete user.createdAt
     delete user.updatedAt
+    this.redisService.set(`user:${user.id}`, JSON.stringify(user))
     return { user, ...token }
   }
 
