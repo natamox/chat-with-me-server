@@ -104,7 +104,6 @@ export class RoomService {
   }
 
   async matchUser(userId: string) {
-    console.log('userId', userId)
     let roomId = null
     let matchUserId = null
     let lock = null
